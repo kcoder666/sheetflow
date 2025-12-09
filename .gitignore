@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+dist/
+build/
+*.egg-info/
+python_converter
+python_converter.exe
+temp_convert.py
+
+# Electron
+node_modules/
+dist/
+out/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

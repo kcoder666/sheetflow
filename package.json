@@ -1,0 +1,58 @@
+{
+  "name": "Sheetflow",
+  "version": "1.0.0",
+  "description": "Convert Excel files to CSV with ease - fast, reliable, and supports large files",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build-python": "bash build-python.sh",
+    "build-python-win": "build-python.bat",
+    "prepackage": "npm run build-python",
+    "package": "electron-builder"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "keywords": [
+    "excel",
+    "csv",
+    "converter",
+    "electron"
+  ],
+  "author": "Khoa Tran (Kcoder) <khoatran.geek@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-reload": "^2.0.0-alpha.1"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "exceljs": "^4.4.0"
+  },
+  "build": {
+    "appId": "com.sheetflow.app",
+    "productName": "SheetFlow",
+    "icon": "app_icon.png",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "app_icon.png"
+    },
+    "win": {
+      "icon": "app_icon.png"
+    },
+    "linux": {
+      "icon": "app_icon.png"
+    },
+    "extraResources": [
+      {
+        "from": ".",
+        "to": ".",
+        "filter": [
+          "python_converter.exe",
+          "python_converter",
+          "python_converter.py"
+        ]
+      }
+    ]
+  }
+}

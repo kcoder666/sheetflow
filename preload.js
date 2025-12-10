@@ -15,9 +15,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onExcelProgress: (callback) => ipcRenderer.on('excel-progress', (event, data) => callback(data)),
   onExcelWorksheets: (callback) => ipcRenderer.on('excel-worksheets', (event, data) => callback(data)),
   onExcelCancelled: (callback) => ipcRenderer.on('excel-cancelled', (event, data) => callback(data)),
+  onConversionProgress: (callback) => ipcRenderer.on('conversion-progress', (event, data) => callback(data)),
 
   // Cleanup functions for event listeners
   removeExcelProgressListener: () => ipcRenderer.removeAllListeners('excel-progress'),
   removeExcelWorksheetsListener: () => ipcRenderer.removeAllListeners('excel-worksheets'),
-  removeExcelCancelledListener: () => ipcRenderer.removeAllListeners('excel-cancelled')
+  removeExcelCancelledListener: () => ipcRenderer.removeAllListeners('excel-cancelled'),
+  removeConversionProgressListener: () => ipcRenderer.removeAllListeners('conversion-progress')
 });

@@ -26,6 +26,13 @@ const deselectAllBtn = document.getElementById('deselectAllBtn');
 const progressFillEl = document.getElementById('progressFill');
 const progressTextEl = document.getElementById('progressText');
 const cancelBtn = document.getElementById('cancelBtn');
+const conversionProgressEl = document.getElementById('conversionProgress');
+const conversionProgressFillEl = document.getElementById('conversionProgressFill');
+const conversionProgressTextEl = document.getElementById('conversionProgressText');
+const cancelConversionBtn = document.getElementById('cancelConversionBtn');
+const currentWorksheetEl = document.getElementById('currentWorksheet');
+const worksheetProgressEl = document.getElementById('worksheetProgress');
+const totalRowsProcessedEl = document.getElementById('totalRowsProcessed');
 
 // Set up progress event handlers
 window.electronAPI.onExcelProgress((data) => {
@@ -40,6 +47,10 @@ window.electronAPI.onExcelWorksheets((data) => {
 
 window.electronAPI.onExcelCancelled((data) => {
   handleProcessingCancelled();
+});
+
+window.electronAPI.onConversionProgress((data) => {
+  updateConversionProgress(data);
 });
 
 // Function to update progress UI
@@ -93,6 +104,62 @@ function resetProgressUI() {
   if (cancelButton) cancelButton.style.display = 'none';
   if (progressFillEl) progressFillEl.style.width = '0%';
   if (progressTextEl) progressTextEl.textContent = '0%';
+}
+
+// Function to update conversion progress
+function updateConversionProgress(data) {
+  const { currentSheet, completed, total, totalRows } = data;
+
+  // Update conversion progress container
+  if (conversionProgressEl) {
+    conversionProgressEl.style.display = 'block';
+  }
+
+  // Update progress bar
+  const progressPercent = total > 0 ? (completed / total) * 100 : 0;
+  if (conversionProgressFillEl) {
+    conversionProgressFillEl.style.width = `${progressPercent}%`;
+  }
+
+  // Update progress text
+  if (conversionProgressTextEl) {
+    conversionProgressTextEl.textContent = `Converting ${currentSheet}... ${Math.round(progressPercent)}%`;
+  }
+
+  // Update detailed progress information
+  if (currentWorksheetEl) {
+    currentWorksheetEl.textContent = currentSheet || '-';
+  }
+
+  if (worksheetProgressEl) {
+    worksheetProgressEl.textContent = `${completed} of ${total} worksheets`;
+  }
+
+  if (totalRowsProcessedEl) {
+    totalRowsProcessedEl.textContent = totalRows ? totalRows.toLocaleString() : '0';
+  }
+}
+
+// Function to reset conversion progress UI
+function resetConversionProgressUI() {
+  if (conversionProgressEl) {
+    conversionProgressEl.style.display = 'none';
+  }
+  if (conversionProgressFillEl) {
+    conversionProgressFillEl.style.width = '0%';
+  }
+  if (conversionProgressTextEl) {
+    conversionProgressTextEl.textContent = 'Preparing conversion...';
+  }
+  if (currentWorksheetEl) {
+    currentWorksheetEl.textContent = '-';
+  }
+  if (worksheetProgressEl) {
+    worksheetProgressEl.textContent = '0 of 0 worksheets';
+  }
+  if (totalRowsProcessedEl) {
+    totalRowsProcessedEl.textContent = '0';
+  }
 }
 
 // Function to handle file selection and worksheet loading
@@ -262,6 +329,19 @@ cancelBtn.addEventListener('click', async () => {
   }
 });
 
+// Cancel button for conversion processing
+cancelConversionBtn.addEventListener('click', async () => {
+  try {
+    await window.electronAPI.cancelExcelProcessing();
+    showStatus('Cancelling conversion...', 'info');
+    convertBtn.disabled = false;
+    resetConversionProgressUI();
+  } catch (error) {
+    console.error('Failed to cancel conversion:', error);
+    showStatus('Failed to cancel conversion', 'error');
+  }
+});
+
 // Output directory selection
 selectDirBtn.addEventListener('click', async () => {
   const dirPath = await window.electronAPI.selectOutputDir();
@@ -320,6 +400,7 @@ convertBtn.addEventListener('click', async () => {
   convertBtn.disabled = true;
   showStatus('Converting...', 'info');
   resultsEl.innerHTML = '';
+  resetConversionProgressUI();
 
   if (selectedWorksheets.length === 0) {
     showStatus('Please select at least one worksheet to convert', 'error');
@@ -340,6 +421,7 @@ convertBtn.addEventListener('click', async () => {
   console.log('Renderer: Received result:', result);
 
   convertBtn.disabled = false;
+  resetConversionProgressUI();
 
   if (result.success) {
     const totalRows = result.totalRows || 0;
@@ -365,6 +447,7 @@ function clearStatus() {
   statusEl.className = 'status';
   statusEl.textContent = '';
   resultsEl.innerHTML = '';
+  resetConversionProgressUI();
 }
 
 function displayResults(files) {

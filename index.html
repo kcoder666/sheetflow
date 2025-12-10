@@ -119,6 +119,33 @@
             </button>
           </div>
 
+          <div id="conversionProgress" class="conversion-progress" style="display: none;">
+            <div class="conversion-header">
+              <h3>Converting to CSV...</h3>
+              <button id="cancelConversionBtn" class="btn-secondary cancel-btn">Cancel</button>
+            </div>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div id="conversionProgressFill" class="progress-fill"></div>
+              </div>
+              <p id="conversionProgressText" class="progress-text">Preparing conversion...</p>
+            </div>
+            <div id="conversionDetails" class="conversion-details">
+              <div class="detail-row">
+                <span>Current worksheet:</span>
+                <span id="currentWorksheet">-</span>
+              </div>
+              <div class="detail-row">
+                <span>Progress:</span>
+                <span id="worksheetProgress">0 of 0 worksheets</span>
+              </div>
+              <div class="detail-row">
+                <span>Total rows processed:</span>
+                <span id="totalRowsProcessed">0</span>
+              </div>
+            </div>
+          </div>
+
           <div id="status" class="status"></div>
           <div id="results" class="results"></div>
         </div>

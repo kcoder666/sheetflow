@@ -9,6 +9,8 @@ import sys
 import os
 import os.path
 import json
+import io
+import csv
 
 
 def validate_file_path(file_path, allow_write=False):
@@ -32,7 +34,8 @@ def validate_file_path(file_path, allow_write=False):
     normalized_path = os.path.normpath(os.path.abspath(file_path))
 
     # Check for path traversal attempts
-    if '..' in file_path or file_path.startswith('/'):
+    # Only flag as suspicious if path contains .. and goes outside working directory
+    if '..' in file_path:
         if not normalized_path.startswith(os.getcwd()):
             raise ValueError("Path traversal detected: file must be within current working directory")
 
@@ -135,11 +138,21 @@ def main():
             max_size_bytes = args['max_file_size_mb'] * 1024 * 1024 if args['max_file_size_mb'] else None
             
             # Get header size once (approximate)
-            header_size_bytes = len(df.columns.to_csv(index=False).encode('utf-8')) if len(df.columns) > 0 else 0
+            if len(df.columns) > 0:
+                header_buffer = io.StringIO()
+                csv_writer = csv.writer(header_buffer)
+                csv_writer.writerow(df.columns)
+                header_csv = header_buffer.getvalue()
+            else:
+                header_csv = ''
+            header_size_bytes = len(header_csv.encode('utf-8'))
 
             for idx, row in df.iterrows():
-                # Convert row to CSV to estimate size
-                row_csv = row.to_csv(index=False, header=False)
+                # Convert row to CSV to estimate size (using csv module for proper escaping)
+                row_buffer = io.StringIO()
+                csv_writer = csv.writer(row_buffer)
+                csv_writer.writerow(row.values)
+                row_csv = row_buffer.getvalue()
                 row_size_bytes = len(row_csv.encode('utf-8'))
                 
                 # Check if adding this row would exceed limits

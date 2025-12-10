@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none';">
   <title>SheetFlow</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -19,82 +20,102 @@
     </header>
 
     <main class="app-content">
-      <section class="card">
-        <div class="card-header">
-          <h2>Source File</h2>
-        </div>
-        <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Excel File</label>
-            <div class="file-input-wrapper">
-              <input type="text" id="inputFile" class="file-input" readonly placeholder="Select an Excel file (.xlsx, .xls, .xlsm)">
-              <button id="selectFileBtn" class="btn-secondary">
-                <span class="btn-icon">📁</span>
-                Browse
-              </button>
+      <div class="content-grid">
+        <div class="content-left">
+          <section class="card">
+            <div class="card-header">
+              <h2>Source File</h2>
             </div>
-          </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Excel File</label>
+                <div class="file-input-wrapper">
+                  <input type="text" id="inputFile" class="file-input" readonly placeholder="Select an Excel file (.xlsx, .xls, .xlsm)">
+                  <button id="selectFileBtn" class="btn-secondary">
+                    <span class="btn-icon">📁</span>
+                    Browse
+                  </button>
+                </div>
+              </div>
 
-           <div class="form-group" id="worksheetSelection" style="display: none;">
-             <label class="form-label">Worksheets</label>
-             <div class="worksheet-container">
-               <div id="worksheetLoading" class="worksheet-loading" style="display: none;">
-                 <div class="loading-spinner"></div>
-                 <p class="loading-text">Reading Excel file and loading worksheets...</p>
+               <div class="form-group" id="worksheetSelection" style="display: none;">
+                 <label class="form-label">Worksheets</label>
+                 <div class="worksheet-container">
+                   <div id="worksheetLoading" class="worksheet-loading" style="display: none;">
+                     <div class="loading-spinner"></div>
+                     <p class="loading-text">Reading Excel file and loading worksheets...</p>
+                   </div>
+                   <div id="worksheetList" class="worksheet-list"></div>
+                   <div class="worksheet-actions">
+                     <button id="selectAllBtn" class="btn-link">Select All</button>
+                     <span class="separator">•</span>
+                     <button id="deselectAllBtn" class="btn-link">Deselect All</button>
+                   </div>
+                 </div>
                </div>
-               <div id="worksheetList" class="worksheet-list"></div>
-               <div class="worksheet-actions">
-                 <button id="selectAllBtn" class="btn-link">Select All</button>
-                 <span class="separator">•</span>
-                 <button id="deselectAllBtn" class="btn-link">Deselect All</button>
-               </div>
-             </div>
-           </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <h2>Output Settings</h2>
-        </div>
-        <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Output Directory</label>
-            <div class="file-input-wrapper">
-              <input type="text" id="outputDir" class="file-input" readonly placeholder="Same as input file (default)">
-              <button id="selectDirBtn" class="btn-secondary">
-                <span class="btn-icon">📂</span>
-                Choose
-              </button>
             </div>
-            <p class="form-hint">Leave empty to save in the same folder as the source file</p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="enableSplit" class="checkbox">
-              <span class="checkbox-custom"></span>
-              <span class="checkbox-text">Split large files into multiple CSV files</span>
-            </label>
-          </div>
+          <section class="card">
+            <div class="card-header">
+              <h2>Output Settings</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Output Directory</label>
+                <div class="file-input-wrapper">
+                  <input type="text" id="outputDir" class="file-input" readonly placeholder="Same as input file (default)">
+                  <button id="selectDirBtn" class="btn-secondary">
+                    <span class="btn-icon">📂</span>
+                    Choose
+                  </button>
+                </div>
+                <p class="form-hint">Leave empty to save in the same folder as the source file</p>
+              </div>
 
-          <div class="form-group split-options" id="splitOptions" style="display: none;">
-            <label class="form-label">Maximum rows per file</label>
-            <input type="number" id="maxRows" class="number-input" value="1000" min="1" placeholder="1000">
-            <p class="form-hint">Files exceeding this limit will be split automatically</p>
-          </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="enableLimitRows" class="checkbox">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text">Limit maximum rows per file</span>
+                </label>
+              </div>
+
+              <div class="form-group split-options" id="limitRowsOptions" style="display: none;">
+                <label class="form-label">Maximum rows per file</label>
+                <input type="number" id="maxRows" class="number-input" value="1000" min="1" placeholder="1000">
+                <p class="form-hint">Files exceeding this limit will be split automatically</p>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="enableLimitSize" class="checkbox">
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text">Limit maximum file size</span>
+                </label>
+              </div>
+
+              <div class="form-group split-options" id="limitSizeOptions" style="display: none;">
+                <label class="form-label">Maximum file size (MB)</label>
+                <input type="number" id="maxFileSize" class="number-input" value="10" min="0.1" step="0.1" placeholder="10">
+                <p class="form-hint">Files exceeding this size will be split automatically</p>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
 
-      <div class="action-section">
-        <button id="convertBtn" class="btn-primary" disabled>
-          <span class="btn-icon">⚡</span>
-          <span>Convert to CSV</span>
-        </button>
+        <div class="content-right">
+          <div class="action-section">
+            <button id="convertBtn" class="btn-primary" disabled>
+              <span class="btn-icon">⚡</span>
+              <span>Convert to CSV</span>
+            </button>
+          </div>
+
+          <div id="status" class="status"></div>
+          <div id="results" class="results"></div>
+        </div>
       </div>
-
-      <div id="status" class="status"></div>
-      <div id="results" class="results"></div>
     </main>
   </div>
 

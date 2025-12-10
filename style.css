@@ -67,7 +67,7 @@ body {
 }
 
 .header-content {
-  max-width: 800px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -100,10 +100,35 @@ body {
 /* Main Content */
 .app-content {
   flex: 1;
-  max-width: 800px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: var(--spacing-md) var(--spacing-lg);
+  min-width: 0; /* Ensure grid can shrink properly */
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--spacing-lg);
+  align-items: start;
+  min-height: 400px;
+}
+
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0; /* Prevent overflow */
+}
+
+.content-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  position: sticky;
+  top: var(--spacing-md);
+  align-self: start;
 }
 
 /* Cards */
@@ -495,20 +520,17 @@ button {
 
 /* Action Section */
 .action-section {
-  margin-top: var(--spacing-xl);
-  margin-bottom: var(--spacing-lg);
   display: flex;
-  justify-content: center;
+  justify-content: stretch;
 }
 
 .btn-primary {
-  min-width: 200px;
+  width: 100%;
   padding: 16px 32px;
 }
 
 /* Status Messages */
 .status {
-  margin-top: var(--spacing-lg);
   padding: 14px 18px;
   border-radius: var(--radius-md);
   font-size: 14px;
@@ -541,7 +563,6 @@ button {
 
 /* Results */
 .results {
-  margin-top: var(--spacing-lg);
   font-size: 14px;
   color: var(--color-text-primary);
   animation: slideDown 0.3s ease;
@@ -591,6 +612,17 @@ button {
 }
 
 /* Responsive */
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .content-right {
+    position: static;
+  }
+}
+
 @media (max-width: 640px) {
   .app-content {
     padding: var(--spacing-md);

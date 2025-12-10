@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c main.js)",
+      "Bash(node -c lib/ipcHandlers.js)",
+      "Bash(node -c lib/security.js)",
+      "Bash(node -c preload.js)",
+      "Bash(git add index.html main.js package.json python_converter.py renderer.js style.css lib/ tests/ python_converter.spec)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

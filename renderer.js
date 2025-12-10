@@ -7,9 +7,12 @@ const inputFileEl = document.getElementById('inputFile');
 const outputDirEl = document.getElementById('outputDir');
 const selectFileBtn = document.getElementById('selectFileBtn');
 const selectDirBtn = document.getElementById('selectDirBtn');
-const enableSplitEl = document.getElementById('enableSplit');
-const splitOptionsEl = document.getElementById('splitOptions');
+const enableLimitRowsEl = document.getElementById('enableLimitRows');
+const limitRowsOptionsEl = document.getElementById('limitRowsOptions');
 const maxRowsEl = document.getElementById('maxRows');
+const enableLimitSizeEl = document.getElementById('enableLimitSize');
+const limitSizeOptionsEl = document.getElementById('limitSizeOptions');
+const maxFileSizeEl = document.getElementById('maxFileSize');
 const convertBtn = document.getElementById('convertBtn');
 const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
@@ -133,9 +136,14 @@ selectDirBtn.addEventListener('click', async () => {
   }
 });
 
-// Toggle split options
-enableSplitEl.addEventListener('change', () => {
-  splitOptionsEl.style.display = enableSplitEl.checked ? 'block' : 'none';
+// Toggle limit rows options
+enableLimitRowsEl.addEventListener('change', () => {
+  limitRowsOptionsEl.style.display = enableLimitRowsEl.checked ? 'block' : 'none';
+});
+
+// Toggle limit size options
+enableLimitSizeEl.addEventListener('change', () => {
+  limitSizeOptionsEl.style.display = enableLimitSizeEl.checked ? 'block' : 'none';
 });
 
 // Convert button
@@ -154,10 +162,22 @@ convertBtn.addEventListener('click', async () => {
     return;
   }
 
-  const maxRows = enableSplitEl.checked ? parseInt(maxRowsEl.value) : null;
+  const maxRows = enableLimitRowsEl.checked ? parseInt(maxRowsEl.value) : null;
+  const maxFileSize = enableLimitSizeEl.checked ? parseFloat(maxFileSizeEl.value) : null;
 
-  if (enableSplitEl.checked && (!maxRows || maxRows < 1)) {
+  if (enableLimitRowsEl.checked && (!maxRows || maxRows < 1)) {
     showStatus('Please enter a valid number of rows', 'error');
+    return;
+  }
+
+  if (enableLimitSizeEl.checked && (!maxFileSize || maxFileSize <= 0)) {
+    showStatus('Please enter a valid file size (greater than 0)', 'error');
+    return;
+  }
+
+  // At least one splitting option should be enabled if either checkbox is checked
+  if ((enableLimitRowsEl.checked || enableLimitSizeEl.checked) && !maxRows && !maxFileSize) {
+    showStatus('Please enable at least one splitting option', 'error');
     return;
   }
 
@@ -176,7 +196,8 @@ convertBtn.addEventListener('click', async () => {
     inputFile: filePath,
     worksheets: selectedWorksheets,
     outputDir: selectedOutputDir,
-    maxRows: maxRows
+    maxRows: maxRows,
+    maxFileSize: maxFileSize
   };
 
   console.log('Renderer: Sending conversion request with options:', options);

@@ -2,6 +2,8 @@ let selectedInputFile = null;
 let selectedOutputDir = null;
 let availableWorksheets = [];
 let selectedWorksheets = [];
+let currentWorkerId = null;
+let isProcessing = false;
 
 const inputFileEl = document.getElementById('inputFile');
 const outputDirEl = document.getElementById('outputDir');
@@ -21,41 +23,146 @@ const worksheetListEl = document.getElementById('worksheetList');
 const worksheetLoadingEl = document.getElementById('worksheetLoading');
 const selectAllBtn = document.getElementById('selectAllBtn');
 const deselectAllBtn = document.getElementById('deselectAllBtn');
+const progressFillEl = document.getElementById('progressFill');
+const progressTextEl = document.getElementById('progressText');
+const cancelBtn = document.getElementById('cancelBtn');
+
+// Set up progress event handlers
+window.electronAPI.onExcelProgress((data) => {
+  updateProgress(data.progress, data.message);
+});
+
+window.electronAPI.onExcelWorksheets((data) => {
+  if (data.success) {
+    handleWorksheetsReceived(data.worksheets);
+  }
+});
+
+window.electronAPI.onExcelCancelled((data) => {
+  handleProcessingCancelled();
+});
+
+// Function to update progress UI
+function updateProgress(progress, message) {
+  if (progressFillEl && progressTextEl) {
+    progressFillEl.style.width = `${progress}%`;
+    progressTextEl.textContent = `${Math.round(progress)}% - ${message}`;
+
+    // Show progress container when progress starts
+    if (progress > 0) {
+      const progressContainer = document.querySelector('.progress-container');
+      if (progressContainer) {
+        progressContainer.style.display = 'block';
+      }
+    }
+  }
+}
+
+// Function to handle received worksheets during processing
+function handleWorksheetsReceived(worksheets) {
+  // Update available worksheets in real-time
+  if (worksheets && worksheets.length > 0) {
+    availableWorksheets = worksheets;
+    selectedWorksheets = worksheets.map(ws => ws.name || ws);
+
+    // Show worksheets immediately while processing continues
+    worksheetLoadingEl.style.display = 'none';
+    worksheetListEl.style.display = 'block';
+    displayWorksheets();
+    convertBtn.disabled = false;
+
+    showStatus(`Found ${availableWorksheets.length} worksheet(s) - Processing complete`, 'success');
+  }
+}
+
+// Function to handle processing cancellation
+function handleProcessingCancelled() {
+  isProcessing = false;
+  currentWorkerId = null;
+  worksheetLoadingEl.style.display = 'none';
+  showStatus('File processing cancelled', 'info');
+  resetProgressUI();
+}
+
+// Function to reset progress UI
+function resetProgressUI() {
+  const progressContainer = document.querySelector('.progress-container');
+  const cancelButton = document.getElementById('cancelBtn');
+
+  if (progressContainer) progressContainer.style.display = 'none';
+  if (cancelButton) cancelButton.style.display = 'none';
+  if (progressFillEl) progressFillEl.style.width = '0%';
+  if (progressTextEl) progressTextEl.textContent = '0%';
+}
 
 // Function to handle file selection and worksheet loading
 async function handleFileSelection(filePath) {
   if (!filePath) return;
-  
+
+  // Prevent multiple simultaneous processing
+  if (isProcessing) {
+    showStatus('Another file is currently being processed. Please wait or cancel the current operation.', 'info');
+    return;
+  }
+
   selectedInputFile = filePath;
   inputFileEl.value = filePath;
   clearStatus();
-  
+  resetProgressUI();
+
   // Show worksheet selection area with loading state
   worksheetSelectionEl.style.display = 'block';
   worksheetLoadingEl.style.display = 'flex';
   worksheetListEl.style.display = 'none';
   convertBtn.disabled = true;
-  
-  // Get worksheets from the file
+  isProcessing = true;
+
+  // Show cancel button after a short delay (for larger files)
+  setTimeout(() => {
+    if (isProcessing) {
+      const cancelButton = document.getElementById('cancelBtn');
+      if (cancelButton) cancelButton.style.display = 'inline-block';
+    }
+  }, 2000);
+
+  // Get worksheets from the file using background worker
   try {
+    showStatus('Loading Excel file in background...', 'info');
+
     const worksheetsResult = await window.electronAPI.getWorksheets(filePath);
-    
+
+    isProcessing = false;
+    resetProgressUI();
+
     // Hide loading, show worksheet list
     worksheetLoadingEl.style.display = 'none';
     worksheetListEl.style.display = 'block';
-    
+
     if (worksheetsResult.success) {
-      availableWorksheets = worksheetsResult.worksheets;
-      selectedWorksheets = worksheetsResult.worksheets.map(ws => ws.name); // Select all worksheets by default
+      // If worksheets weren't already received via events, process them now
+      if (!availableWorksheets.length) {
+        availableWorksheets = worksheetsResult.worksheets;
+        selectedWorksheets = worksheetsResult.worksheets.map(ws => ws.name || ws);
+      }
+
       displayWorksheets();
       convertBtn.disabled = selectedWorksheets.length === 0;
-      showStatus(`Found ${availableWorksheets.length} worksheet(s)`, 'success');
+
+      // Show complexity information if available
+      const complexSheets = availableWorksheets.filter(ws => ws.complexity === 'large');
+      if (complexSheets.length > 0) {
+        showStatus(`Found ${availableWorksheets.length} worksheet(s). ${complexSheets.length} large worksheet(s) detected.`, 'success');
+      } else {
+        showStatus(`Found ${availableWorksheets.length} worksheet(s)`, 'success');
+      }
     } else {
       showStatus(`Error loading worksheets: ${worksheetsResult.error}`, 'error');
       worksheetListEl.innerHTML = `<p style="padding: 16px; text-align: center; color: var(--color-error);">Failed to load worksheets: ${worksheetsResult.error}</p>`;
       convertBtn.disabled = true;
     }
   } catch (error) {
+    isProcessing = false;
+    resetProgressUI();
     worksheetLoadingEl.style.display = 'none';
     worksheetListEl.style.display = 'block';
     showStatus(`Error loading worksheets: ${error.message}`, 'error');
@@ -82,18 +189,24 @@ function displayWorksheets() {
     return;
   }
 
-  const html = availableWorksheets.map((ws, index) => `
-    <label class="worksheet-item ${!ws.accessible ? 'worksheet-item-large' : ''}">
-      <input 
-        type="checkbox" 
-        data-worksheet="${ws.name}" 
-        ${selectedWorksheets.includes(ws.name) ? 'checked' : ''}
-        title="${!ws.accessible ? 'This worksheet is large and will use Python for conversion' : ''}"
+  const html = availableWorksheets.map((ws, index) => {
+    const worksheet = typeof ws === 'string' ? { name: ws, accessible: true } : ws;
+    const isLarge = worksheet.complexity === 'large' || !worksheet.accessible;
+    const estimatedInfo = worksheet.estimatedRows ? ` (~${worksheet.estimatedRows.toLocaleString()} rows)` : '';
+
+    return `
+    <label class="worksheet-item ${isLarge ? 'worksheet-item-large' : ''}">
+      <input
+        type="checkbox"
+        data-worksheet="${worksheet.name}"
+        ${selectedWorksheets.includes(worksheet.name) ? 'checked' : ''}
+        title="${isLarge ? 'This worksheet is large and will use Python for conversion' : 'This worksheet can be processed quickly'}"
       >
-      <span class="worksheet-name">${ws.name}</span>
-      ${!ws.accessible ? '<span class="worksheet-warning">(large file - uses Python)</span>' : ''}
+      <span class="worksheet-name">${worksheet.name}${estimatedInfo}</span>
+      ${isLarge ? '<span class="worksheet-warning">(large file - uses Python)</span>' : ''}
     </label>
-  `).join('');
+    `;
+  }).join('');
 
   worksheetListEl.innerHTML = html;
 
@@ -125,6 +238,28 @@ deselectAllBtn.addEventListener('click', () => {
   selectedWorksheets = [];
   displayWorksheets();
   convertBtn.disabled = true;
+});
+
+// Cancel button for file processing
+cancelBtn.addEventListener('click', async () => {
+  if (isProcessing && currentWorkerId) {
+    try {
+      await window.electronAPI.cancelExcelProcessing(currentWorkerId);
+      showStatus('Cancelling file processing...', 'info');
+    } catch (error) {
+      console.error('Failed to cancel processing:', error);
+      showStatus('Failed to cancel processing', 'error');
+    }
+  } else if (isProcessing) {
+    // Cancel all if no specific worker ID
+    try {
+      await window.electronAPI.cancelExcelProcessing();
+      showStatus('Cancelling file processing...', 'info');
+    } catch (error) {
+      console.error('Failed to cancel processing:', error);
+      showStatus('Failed to cancel processing', 'error');
+    }
+  }
 });
 
 // Output directory selection

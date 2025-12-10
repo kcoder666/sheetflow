@@ -1,7 +1,7 @@
 {
   "name": "sheetflow",
   "version": "1.0.0",
-  "description": "Convert Excel files to CSV with ease",
+  "description": "Convert large Excel files (200MB+) to CSV with ease",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -18,7 +18,7 @@
     "converter",
     "electron"
   ],
-  "author": "SheetFlow Team",
+  "author": "Khoa Tran<khoatran.geek@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "electron": "^22.0.0",
@@ -48,6 +48,7 @@
       "renderer.js",
       "python_converter.py",
       "lib/**/*",
+      "tests/**/*",
       "app_icon.png"
     ],
     "mac": {

@@ -5,7 +5,10 @@
       "Bash(node -c lib/ipcHandlers.js)",
       "Bash(node -c lib/security.js)",
       "Bash(node -c preload.js)",
-      "Bash(git add index.html main.js package.json python_converter.py renderer.js style.css lib/ tests/ python_converter.spec)"
+      "Bash(git add index.html main.js package.json python_converter.py renderer.js style.css lib/ tests/ python_converter.spec)",
+      "Bash(node -c lib/excelWorker.js)",
+      "Bash(node -c lib/excelWorkerThread.js)",
+      "Bash(node -c renderer.js)"
     ],
     "deny": [],
     "ask": []

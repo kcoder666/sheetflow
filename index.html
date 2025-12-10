@@ -44,6 +44,13 @@
                    <div id="worksheetLoading" class="worksheet-loading" style="display: none;">
                      <div class="loading-spinner"></div>
                      <p class="loading-text">Reading Excel file and loading worksheets...</p>
+                     <div class="progress-container" style="display: none;">
+                       <div class="progress-bar">
+                         <div id="progressFill" class="progress-fill"></div>
+                       </div>
+                       <p id="progressText" class="progress-text">0%</p>
+                     </div>
+                     <button id="cancelBtn" class="btn-secondary cancel-btn" style="display: none;">Cancel</button>
                    </div>
                    <div id="worksheetList" class="worksheet-list"></div>
                    <div class="worksheet-actions">

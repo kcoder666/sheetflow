@@ -9,7 +9,9 @@
       "Bash(node -c lib/excelWorker.js)",
       "Bash(node -c lib/excelWorkerThread.js)",
       "Bash(node -c renderer.js)",
-      "Bash(python3 -m py_compile python_converter.py)"
+      "Bash(python3 -m py_compile python_converter.py)",
+      "Bash(node -c lib/streamingReader.js)",
+      "Bash(npm start)"
     ],
     "deny": [],
     "ask": []

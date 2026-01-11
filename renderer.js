@@ -34,6 +34,20 @@ const currentWorksheetEl = document.getElementById('currentWorksheet');
 const worksheetProgressEl = document.getElementById('worksheetProgress');
 const totalRowsProcessedEl = document.getElementById('totalRowsProcessed');
 
+// Tab elements
+const converterTab = document.getElementById('converterTab');
+const viewerTab = document.getElementById('viewerTab');
+const converterContent = document.getElementById('converterContent');
+const viewerContent = document.getElementById('viewerContent');
+
+// File Viewer tab elements
+const openFileViewerBtn = document.getElementById('openFileViewerBtn');
+const openMultipleFilesBtn = document.getElementById('openMultipleFilesBtn');
+const recentFiles = document.getElementById('recentFiles');
+const recentFilesList = document.getElementById('recentFilesList');
+const activeViewers = document.getElementById('activeViewers');
+const activeViewersList = document.getElementById('activeViewersList');
+
 // Set up progress event handlers
 window.electronAPI.onExcelProgress((data) => {
   updateProgress(data.progress, data.message);
@@ -466,4 +480,176 @@ function displayResults(files) {
   `;
 
   resultsEl.innerHTML = html;
+}
+
+// State for tracking viewer windows
+let viewerWindows = [];
+let recentFilesData = [];
+
+// Tab switching
+converterTab.addEventListener('click', () => {
+  switchTab('converter');
+});
+
+viewerTab.addEventListener('click', () => {
+  switchTab('viewer');
+});
+
+function switchTab(tab) {
+  if (tab === 'converter') {
+    converterTab.classList.add('active');
+    viewerTab.classList.remove('active');
+    converterContent.classList.add('active');
+    viewerContent.classList.remove('active');
+  } else {
+    viewerTab.classList.add('active');
+    converterTab.classList.remove('active');
+    viewerContent.classList.add('active');
+    converterContent.classList.remove('active');
+
+    // Update the active viewers list when switching to viewer tab
+    updateActiveViewersList();
+  }
+}
+
+// File Viewer tab functionality
+openFileViewerBtn.addEventListener('click', async () => {
+  await openViewerWithFileSelection();
+});
+
+openMultipleFilesBtn.addEventListener('click', async () => {
+  // Allow selecting multiple files
+  const filePaths = await window.electronAPI.selectMultipleViewerFiles();
+  if (filePaths && filePaths.length > 0) {
+    // Open each file in a separate viewer window
+    for (const filePath of filePaths) {
+      await openSpecificFileInNewViewer(filePath);
+    }
+  }
+});
+
+// Open viewer with file selection (new streamlined workflow)
+async function openViewerWithFileSelection() {
+  try {
+    console.log('openViewerWithFileSelection called');
+    console.log('window.electronAPI available:', !!window.electronAPI);
+    console.log('openViewerWithFile available:', !!window.electronAPI.openViewerWithFile);
+
+    const result = await window.electronAPI.openViewerWithFile();
+
+    if (result.success && result.filePath) {
+      // Add to recent files
+      addToRecentFiles(result.filePath);
+
+      // Track the new window
+      const windowId = Date.now();
+      viewerWindows.push({
+        id: windowId,
+        filePath: result.filePath,
+        fileName: getFileName(result.filePath),
+        opened: new Date()
+      });
+
+      updateActiveViewersList();
+      updateRecentFilesList();
+
+      console.log(`Opened file viewer for: ${result.filePath}`);
+    } else if (!result.cancelled) {
+      console.error('Failed to open viewer with file:', result.error);
+    }
+  } catch (error) {
+    console.error('Failed to open file viewer:', error);
+  }
+}
+
+// Open a file in new viewer window (legacy function)
+async function openFileInNewViewer() {
+  const filePath = await window.electronAPI.selectViewerFile();
+  if (filePath) {
+    await openSpecificFileInNewViewer(filePath);
+  }
+}
+
+// Open specific file in new viewer window
+async function openSpecificFileInNewViewer(filePath) {
+  try {
+    const result = await window.electronAPI.openNewViewer();
+    if (result.success) {
+      // Add to recent files
+      addToRecentFiles(filePath);
+
+      // Track the new window
+      const windowId = Date.now(); // Simple ID generation
+      viewerWindows.push({
+        id: windowId,
+        filePath: filePath,
+        fileName: getFileName(filePath),
+        opened: new Date()
+      });
+
+      updateActiveViewersList();
+      updateRecentFilesList();
+
+      console.log(`Opened file viewer for: ${filePath}`);
+    }
+  } catch (error) {
+    console.error('Failed to open file viewer:', error);
+  }
+}
+
+// Utility functions
+function getFileName(filePath) {
+  return filePath.split(/[\\/]/).pop();
+}
+
+function addToRecentFiles(filePath) {
+  // Remove if already exists
+  recentFilesData = recentFilesData.filter(item => item.filePath !== filePath);
+
+  // Add to beginning
+  recentFilesData.unshift({
+    filePath: filePath,
+    fileName: getFileName(filePath),
+    lastOpened: new Date()
+  });
+
+  // Keep only last 10
+  recentFilesData = recentFilesData.slice(0, 10);
+}
+
+function updateRecentFilesList() {
+  if (recentFilesData.length === 0) {
+    recentFiles.style.display = 'none';
+    return;
+  }
+
+  recentFiles.style.display = 'block';
+  recentFilesList.innerHTML = '';
+
+  recentFilesData.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.textContent = item.fileName;
+    li.title = item.filePath;
+    li.addEventListener('click', () => {
+      openSpecificFileInNewViewer(item.filePath);
+    });
+    recentFilesList.appendChild(li);
+  });
+}
+
+function updateActiveViewersList() {
+  if (viewerWindows.length === 0) {
+    activeViewers.style.display = 'none';
+    return;
+  }
+
+  activeViewers.style.display = 'block';
+  activeViewersList.innerHTML = '';
+
+  viewerWindows.forEach((window, index) => {
+    const li = document.createElement('li');
+    li.textContent = `${window.fileName} (${window.opened.toLocaleTimeString()})`;
+    li.title = window.filePath;
+    activeViewersList.appendChild(li);
+  });
 }

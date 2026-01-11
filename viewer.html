@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'self'; form-action 'none';">
+  <title>File Viewer - SheetFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="simple-viewer">
+    <!-- Minimal Header -->
+    <div class="viewer-header">
+      <div class="file-info">
+        <span id="fileName">No file selected</span>
+        <span id="fileDetails" class="file-details"></span>
+      </div>
+      <div class="viewer-actions">
+        <button id="openFileBtn" class="btn-simple">📁 Open</button>
+        <select id="worksheetSelect" class="worksheet-select" style="display: none;">
+          <option value="">Select worksheet...</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="simple-table-container" id="tableContainer">
+      <!-- Table Navigation -->
+      <div class="table-nav" id="tableNav" style="display: none;">
+        <div class="nav-info">
+          <span>Rows <span id="rowStart">1</span>-<span id="rowEnd">100</span> of <span id="rowTotal">0</span></span>
+        </div>
+        <div class="nav-controls">
+          <button id="prevBtn" class="btn-nav" disabled>◀ Prev</button>
+          <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+          <button id="nextBtn" class="btn-nav" disabled>Next ▶</button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-wrapper" id="tableWrapper">
+        <table id="dataTable" class="data-table">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- States -->
+      <div id="loadingState" class="state-message" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading file...</p>
+      </div>
+
+      <div id="emptyState" class="state-message">
+        <p>📊 Select a file to view its contents</p>
+      </div>
+
+      <div id="errorState" class="state-message" style="display: none;">
+        <p>❌ <span id="errorMessage">Unable to load file</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="viewer.js"></script>
+</body>
+</html>

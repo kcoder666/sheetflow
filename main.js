@@ -11,6 +11,7 @@ app.setName('SheetFlow');
 
 // Global variables
 let mainWindow;
+let viewerWindows = new Set();
 
 // Auto-reload for development
 if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
@@ -47,6 +48,39 @@ function createWindow() {
   });
 }
 
+function createViewerWindow() {
+  const viewerWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    webPreferences: getSecureWebPreferences(path.join(__dirname, 'preload.js')),
+    show: false,
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default'
+  });
+
+  // Load the viewer HTML
+  viewerWindow.loadFile('viewer.html');
+
+  // Set up security for the window
+  setupWindowSecurity(viewerWindow);
+
+  // Add to viewer windows set
+  viewerWindows.add(viewerWindow);
+
+  // Show window when ready
+  viewerWindow.once('ready-to-show', () => {
+    viewerWindow.show();
+  });
+
+  // Remove from set when closed
+  viewerWindow.on('closed', () => {
+    viewerWindows.delete(viewerWindow);
+  });
+
+  return viewerWindow;
+}
+
 // Initialize app when ready
 app.whenReady().then(() => {
   // Set app icon for macOS dock
@@ -61,7 +95,7 @@ app.whenReady().then(() => {
 
   createWindow();
   createMenu();
-  setupIpcHandlers(mainWindow);
+  setupIpcHandlers(mainWindow, createViewerWindow);
 
   logger.info('SheetFlow started successfully');
 });

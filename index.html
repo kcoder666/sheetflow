@@ -14,13 +14,27 @@
         <div class="app-icon">📊</div>
         <div class="header-text">
           <h1>SheetFlow</h1>
-          <p class="subtitle">Convert Excel files to CSV with ease</p>
+          <p class="subtitle">Convert Excel files to CSV with ease • View large files</p>
         </div>
       </div>
     </header>
 
     <main class="app-content">
-      <div class="content-grid">
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button id="converterTab" class="tab-button active">
+          <span class="tab-icon">⚡</span>
+          <span>Converter</span>
+        </button>
+        <button id="viewerTab" class="tab-button">
+          <span class="tab-icon">👁️</span>
+          <span>File Viewer</span>
+        </button>
+      </div>
+
+      <!-- Converter Content -->
+      <div id="converterContent" class="tab-content active">
+        <div class="content-grid">
         <div class="content-left">
           <section class="card">
             <div class="card-header">
@@ -148,6 +162,81 @@
 
           <div id="status" class="status"></div>
           <div id="results" class="results"></div>
+        </div>
+        </div>
+      </div>
+
+      <!-- File Viewer Content -->
+      <div id="viewerContent" class="tab-content">
+        <div class="viewer-tab-layout">
+          <!-- File Viewer Welcome/Actions -->
+          <section class="card viewer-actions-card">
+            <div class="card-header">
+              <h2>File Viewer</h2>
+            </div>
+            <div class="card-body">
+              <div class="viewer-actions">
+                <div class="action-item">
+                  <h3>📊 Open Excel or CSV File</h3>
+                  <p>Open large files in separate windows for viewing and analysis</p>
+                  <button id="openFileViewerBtn" class="btn-primary">
+                    <span class="btn-icon">📁</span>
+                    Open File
+                  </button>
+                </div>
+                <div class="action-item">
+                  <h3>🔷 Multiple Files</h3>
+                  <p>Open multiple files simultaneously for comparison</p>
+                  <button id="openMultipleFilesBtn" class="btn-secondary">
+                    <span class="btn-icon">📑</span>
+                    Open Multiple Files
+                  </button>
+                </div>
+              </div>
+
+              <!-- Recent Files -->
+              <div class="recent-files" id="recentFiles" style="display: none;">
+                <h4>Recently Opened Files</h4>
+                <ul id="recentFilesList" class="recent-files-list">
+                  <!-- Recent files will be populated here -->
+                </ul>
+              </div>
+
+              <!-- Active Viewers -->
+              <div class="active-viewers" id="activeViewers" style="display: none;">
+                <h4>Active File Viewers</h4>
+                <ul id="activeViewersList" class="active-viewers-list">
+                  <!-- Active viewer windows will be listed here -->
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recent Files Section -->
+          <section class="card viewer-info-card">
+            <div class="card-header">
+              <h2>Recent Files</h2>
+            </div>
+            <div class="card-body">
+              <div class="recent-files" id="recentFilesDisplay">
+                <ul id="recentFilesList" class="recent-files-list">
+                  <!-- Recent files will be populated here -->
+                </ul>
+              </div>
+
+              <div class="info-section" id="noRecentFiles">
+                <p>📂 No recent files yet. Open some files to see them here.</p>
+              </div>
+
+              <!-- Active Viewers -->
+              <div class="active-viewers" id="activeViewersDisplay" style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--color-border-light); display: none;">
+                <h4>Active File Viewers</h4>
+                <ul id="activeViewersList" class="active-viewers-list">
+                  <!-- Active viewer windows will be listed here -->
+                </ul>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>

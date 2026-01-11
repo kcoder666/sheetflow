@@ -21,5 +21,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeExcelProgressListener: () => ipcRenderer.removeAllListeners('excel-progress'),
   removeExcelWorksheetsListener: () => ipcRenderer.removeAllListeners('excel-worksheets'),
   removeExcelCancelledListener: () => ipcRenderer.removeAllListeners('excel-cancelled'),
-  removeConversionProgressListener: () => ipcRenderer.removeAllListeners('conversion-progress')
+  removeConversionProgressListener: () => ipcRenderer.removeAllListeners('conversion-progress'),
+
+  // File viewer operations
+  selectViewerFile: () => ipcRenderer.invoke('select-viewer-file'),
+  selectMultipleViewerFiles: () => ipcRenderer.invoke('select-multiple-viewer-files'),
+  openNewViewer: () => ipcRenderer.invoke('open-new-viewer'),
+  openViewerWithFile: () => ipcRenderer.invoke('open-viewer-with-file'),
+  viewerInitFile: (filePath) => ipcRenderer.invoke('viewer-init-file', filePath),
+  viewerSetSheet: (sheetName) => ipcRenderer.invoke('viewer-set-sheet', sheetName),
+  viewerReadPage: (startRow, pageSize) => ipcRenderer.invoke('viewer-read-page', startRow, pageSize),
+  viewerGetFileInfo: () => ipcRenderer.invoke('viewer-get-file-info'),
+
+  // Viewer window event listeners
+  onOpenFileDirectly: (callback) => ipcRenderer.on('open-file-directly', (event, filePath) => callback(filePath))
 });
